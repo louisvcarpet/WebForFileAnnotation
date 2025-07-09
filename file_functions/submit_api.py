@@ -75,12 +75,20 @@ def file_upload(author:str,file_name: str, file: bytes):
 @app.get("/showFiles")
 def GetFile(userN:str):
     df = pd.read_sql_table("source_file", connector.engine)
-    files_from_SameUser= df[df["author"] == userN]["file_name"]
-    files_from_SameUser.reset_index(drop=True, inplace=True)
-    files_from_SameUser.index = files_from_SameUser.index + 1
-    files_from_SameUser.index.name = "Number"
-    return files_from_SameUser 
-        
+    files_from_SameUser = (df[df["author"] == userN] [["file_name"]].reset_index(drop=True))
+    # files_from_SameUser.reset_index(drop=True, inplace=True)
+    return files_from_SameUser
+
+@app.get("/fetchPdfByName")
+def fetch_pdf_by_name(author:str, file_name: str):
+    """
+    Fetch the PDF file bytes by its name from the MySQL database.
+    """
+    df = pd.read_sql_table("source_file", connector.engine)
+    
+    selected_file = df[(df["author"] == author) & (df["file_name"] == file_name)].groupby("file_name").head()
+    return selected_file
+
 
 if __name__ == "__main__":
     import uvicorn
