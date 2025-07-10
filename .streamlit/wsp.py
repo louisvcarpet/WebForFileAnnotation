@@ -20,7 +20,7 @@ if "df" not in st.session_state:
 # ---- FRONT PAGE ----
 if st.session_state.page == "front":
     
-    st.image("/Users/blakechang/desktop/WSP/wsplogo.png", width=300) #put your own file path of the logo here 
+    st.image("asset/wsplogo.png", width=300) #put your own file path of the logo here 
     st.title("WSP File Uploader")
     st.markdown("---")
     st.subheader("Search Your Files")
@@ -144,13 +144,14 @@ elif st.session_state.page == "view":
     with dc:
         desc = st.text_area("Description for this page", height=500)
     with author:
-        author_name = st.text_input("Author Name", placeholder="Enter author name:")
+        # author_name = st.text_input("Author Name", placeholder="Enter author name:")
+        author_name = st.text_area("Author:", height=0)
         if st.session_state.get("show_update_warning", False):
             st.markdown(f"**Previous Record:** {checker['description'].values[0]}")
             prev_author = checker['author'].values[0]
             st.markdown(f"**Author:** {prev_author}")
             if st.button("Update Record"):
-                submit(st.session_state.pdf_name, prev_author, st.session_state.current_page, desc)
+                submit(st.session_state.pdf_name, author_name, st.session_state.current_page, desc)
                 st.success("✅ Updated and Saved!")
                 st.session_state.show_update_warning = False  # Reset flag
         else:
