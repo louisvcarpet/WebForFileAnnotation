@@ -96,6 +96,10 @@ def latestPage(author:str, file_name: str):
     df = pd.read_sql_table("annotation_data", connector.engine)
     latest_page = (df.loc[(df["author"] == author) & (df["file_name"] == file_name),"page_num"].max()
 )
+    if pd.isna(latest_page):
+        latest_page = 1  # Default to page 1 if no records found
+    else:
+        latest_page = int(latest_page)  # Ensure it's an integer
 
     return latest_page
 

@@ -30,6 +30,7 @@ if st.session_state.page == "front":
     # with col2:
     #     last_name = st.text_input("Last Name")
     if st.button("Search"):
+        #TODO: fix GetFile to only read file_name and author at the tabl, otherwise it will takes 10 decades to load 
         st.session_state.df = GetFile(user_name)
         st.session_state.last_search = user_name
 
@@ -64,7 +65,8 @@ if st.session_state.page == "front":
             seleted_file = fetch_pdf_by_name(user_name, chosen)
             
             st.session_state.pdf_name  = seleted_file["file_name"].iloc[0]
-            st.session_state.pdf_bytes = seleted_file["file"].iloc[0]
+            
+            st.session_state.pdf_bytes = seleted_file["file"].iloc[0] # use a new api to get the file bytes instead of read entire table at first at line 33
             st.session_state.current_page = latestPage(user_name, chosen)
             st.session_state.page = "view"
             st.rerun()
@@ -145,15 +147,18 @@ elif st.session_state.page == "view":
         desc = st.text_area("Description for this page", height=500)
     with author:
         # author_name = st.text_input("Author Name", placeholder="Enter author name:")
-        author_name = st.text_area("Author:", height=0)
+        author_name = st.text_area("Author Name", height=70)
         if st.session_state.get("show_update_warning", False):
             st.markdown(f"**Previous Record:** {checker['description'].values[0]}")
             prev_author = checker['author'].values[0]
             st.markdown(f"**Author:** {prev_author}")
             if st.button("Update Record"):
-                submit(st.session_state.pdf_name, author_name, st.session_state.current_page, desc)
-                st.success("✅ Updated and Saved!")
-                st.session_state.show_update_warning = False  # Reset flag
+                if author_name: 
+                    submit(st.session_state.pdf_name, author_name, st.session_state.current_page, desc)
+                    st.success("✅ Updated and Saved!")
+                    st.session_state.show_update_warning = False  # Reset flag
+                else:
+                    st.error("Please enter an author name to update the record.")
         else:
             if st.button("Submit"):
                 if checker is not None:
