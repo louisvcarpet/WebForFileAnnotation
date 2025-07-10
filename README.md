@@ -1,2 +1,8 @@
-# Website for users to do file uploading and page annotating, and the MYSQL databases will store all the record for the fine tunning later on( Internship project for WSP Taipei)
+# WSP Taipei Internship Project: File Uploading & Annotation Platform
 
+This web-based platform allows users to:
+
+- Upload documents
+- Annotate individual pages
+
+All activities are recorded and stored in a **MySQL** database, forming a structured dataset for future **machine learning fine-tuning**. This project supports WSP Taipei’s efforts in developing intelligent document understanding and analysis systems.
