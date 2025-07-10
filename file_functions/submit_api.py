@@ -89,7 +89,18 @@ def fetch_pdf_by_name(author:str, file_name: str):
     selected_file = df[(df["author"] == author) & (df["file_name"] == file_name)].groupby("file_name").head()
     return selected_file
 
+def latestPage(author:str, file_name: str):
+    """
+    Fetch the latest page number for a given file name and author.
+    """
+    df = pd.read_sql_table("annotation_data", connector.engine)
+    latest_page = (df.loc[(df["author"] == author) & (df["file_name"] == file_name),"page_num"].max()
+)
+
+    return latest_page
+
+    
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8070)
+    uvicorn.run(app, host="localhost", port=8070)

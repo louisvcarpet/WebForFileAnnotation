@@ -1,7 +1,7 @@
 
 import fitz
 import streamlit as st
-from file_functions.submit_api import submit, file_upload,GetFile,fetch_pdf_by_name
+from file_functions.submit_api import submit, file_upload,GetFile,fetch_pdf_by_name,latestPage
 from file_functions.prev_record import get_previous_record
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 import pandas as pd
@@ -17,25 +17,10 @@ if "current_page" not in st.session_state:
 if "df" not in st.session_state:
     st.session_state.df = None
 
-
-st.sidebar.title("Navigation")
-nav = st.sidebar.radio(
-    "Click to go",
-    options=["Main Page", "Upload","view"],
-    index=["front", "upload","view"].index(st.session_state.page) if st.session_state.page in ["front", "upload","view"] else 0
-)
-
-if nav == "Main Page":
-    st.session_state.page = "front"
-elif nav == "Upload":
-    st.session_state.page = "upload"
-elif nav == "view":
-    st.session_state.page = "view"
-
 # ---- FRONT PAGE ----
 if st.session_state.page == "front":
     
-    st.image("/Users/blakechang/desktop/wsplogo.png", width=300)
+    st.image("/Users/blakechang/desktop/WSP/wsplogo.png", width=300) #put your own file path of the logo here 
     st.title("WSP File Uploader")
     st.markdown("---")
     st.subheader("Search Your Files")
@@ -53,6 +38,8 @@ if st.session_state.page == "front":
 
     if df is not None and not df.empty:
         # Build & render the grid on every rerun
+
+        st.text("Click the box of the file and wait for file loading")
         gb = GridOptionsBuilder.from_dataframe(df[["file_name"]])
         gb.configure_selection(selection_mode="single", use_checkbox=True)
         grid_opts = gb.build()
@@ -74,10 +61,11 @@ if st.session_state.page == "front":
             
             first_row = selected.iloc[0]            # get the first row as a Series
             chosen = first_row["file_name"] 
-            sel_df = fetch_pdf_by_name(user_name, chosen)
+            seleted_file = fetch_pdf_by_name(user_name, chosen)
             
-            st.session_state.pdf_name  = sel_df["file_name"].iloc[0]
-            st.session_state.pdf_bytes = sel_df["file"].iloc[0]
+            st.session_state.pdf_name  = seleted_file["file_name"].iloc[0]
+            st.session_state.pdf_bytes = seleted_file["file"].iloc[0]
+            st.session_state.current_page = latestPage(user_name, chosen)
             st.session_state.page = "view"
             st.rerun()
     # st.warning("No files found for this user.")
@@ -85,13 +73,10 @@ if st.session_state.page == "front":
         st.text("Please click if you can't find the file here:")
         st.button("Upload New File", on_click=lambda: setattr(st.session_state, 'page', 'upload'))
 
-       
-    
-
-
 
 # ---- PAGE 1: UPLOAD ----
 if st.session_state.page == "upload":
+
     if st.button("Back to Main"):
             st.session_state.page = "front"
             st.rerun()
@@ -101,21 +86,17 @@ if st.session_state.page == "upload":
     with col1:
         author = st.text_input("Uploader Name", placeholder="Enter your name here:")
 
-
-
-    #TODO: upload the real file to destination which is the VM currently
-
     if uploaded and author:
         if "file_uploaded" not in st.session_state or st.session_state.pdf_name != uploaded.name:
             data = uploaded.read()
             #set all the PDF session state variables here for the 'view' page
             st.session_state.pdf_bytes = data
             st.session_state.pdf_name = uploaded.name
-            file_upload(author, uploaded.name, data)
+            file_upload(author, uploaded.name, data) # upload the real file to MySQL source_file table
             st.session_state.file_uploaded = True
         if st.button("Next →"):
             st.session_state.page = "view"
-            
+            st.rerun()
 
 # ---- PAGE 2: VIEW & ANNOTATE ----
 
@@ -130,7 +111,8 @@ elif st.session_state.page == "view":
     # open with fitz
     pdf_doc = fitz.open(stream=st.session_state.pdf_bytes, filetype="pdf")
     total = pdf_doc.page_count
-    cp = st.session_state.current_page
+    cp = int (st.session_state.current_page)
+
 
     # navigation
     n1, n2, n3 = st.columns([1,2,1])
@@ -145,8 +127,8 @@ elif st.session_state.page == "view":
             st.session_state.current_page += 1
             st.rerun()
 
-    # render the current page to an image
-    page = pdf_doc.load_page(cp - 1)
+    # render the current page to an image(cp -1 because it's 0-indexed)
+    page = pdf_doc.load_page(cp-1)
     pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2× zoom for readability
     img_data = pix.tobytes("png")
 
