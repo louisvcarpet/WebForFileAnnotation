@@ -20,7 +20,7 @@ if "df" not in st.session_state:
 # ---- FRONT PAGE ----
 if st.session_state.page == "front":
     
-    st.image("asset/wsplogo.png", width=300) #put your own file path of the logo here 
+    st.image("logo.png", width=300) #put your own file path of the logo here 
     st.title("WSP File Uploader")
     st.markdown("---")
     st.subheader("Search Your Files")
@@ -80,8 +80,18 @@ if st.session_state.page == "front":
 if st.session_state.page == "upload":
 
     if st.button("Back to Main"):
-            st.session_state.page = "front"
-            st.rerun()
+        keys_to_clear = [
+        "page",
+        "show_update_warning",
+        "current_page",
+        "pdf_name",
+        "pdf_bytes",
+        "df"
+        ]
+        for key in keys_to_clear:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.rerun()
     st.header("Upload Files")
     uploaded = st.file_uploader("PDF File upload button", type=["pdf"])
     col1 = st.columns(1)[0]  # Get the first column for author input
@@ -107,8 +117,18 @@ elif st.session_state.page == "view":
     st.header(f"Viewing: {st.session_state.pdf_name}")
 
     if st.button("Back to Main"):
-            st.session_state.page = "front"
-            st.rerun()
+        keys_to_clear = [
+        "page",
+        "show_update_warning",
+        "current_page",
+        "pdf_name",
+        "pdf_bytes",
+        "df"
+        ]
+        for key in keys_to_clear:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.rerun()
 
     # open with fitz
     pdf_doc = fitz.open(stream=st.session_state.pdf_bytes, filetype="pdf")
