@@ -8,17 +8,18 @@ from mysql_connector import MySqlConnector
 from dotenv import load_dotenv
 import pandas as pd
 import os
+from sqlalchemy import Text
 load_dotenv()
 
 
-app = FastAPI()
+
 connector = MySqlConnector(
     host=os.getenv("MYSQL_HOST"),
     database=os.getenv("MYSQL_DATABASE"),
     userN=os.getenv("MYSQL_USER"),
     password=os.getenv("MYSQL_PASSWORD") 
 )
-@app.post("/submit")
+
 def submit(file_name: str,author:str, page_num:str, description: str):
 
 
@@ -47,7 +48,6 @@ def submit(file_name: str,author:str, page_num:str, description: str):
     return {"message": "Data submitted successfully", "annotation_data": new_row}
 
 
-@app.post("/addFile")
 def file_upload(author:str,file_name: str, file: bytes):
 
     """
@@ -72,14 +72,11 @@ def file_upload(author:str,file_name: str, file: bytes):
     df.to_sql("source_file", connector.engine, if_exists='append', index=False)
     return {"message": "Data submitted successfully", "source_file": new_row}
 
-@app.get("/showFiles")
-def GetFile(userN:str):
-    df = pd.read_sql_table("source_file", connector.engine)
-    files_from_SameUser = (df[df["author"] == userN] [["file_name"]].reset_index(drop=True))
-    # files_from_SameUser.reset_index(drop=True, inplace=True)
-    return files_from_SameUser
+def GetFile(userN: str):
+    query = "SELECT file_name FROM source_file WHERE author = %s"
+    df = pd.read_sql(query, connector.engine, params=(userN,))
+    return df.reset_index(drop=True)
 
-@app.get("/fetchPdfByName")
 def fetch_pdf_by_name(author:str, file_name: str):
     """
     Fetch the PDF file bytes by its name from the MySQL database.
@@ -104,7 +101,3 @@ def latestPage(author:str, file_name: str):
     return latest_page
 
     
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="localhost", port=8070)

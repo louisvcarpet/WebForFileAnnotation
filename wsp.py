@@ -17,6 +17,7 @@ if "current_page" not in st.session_state:
 if "df" not in st.session_state:
     st.session_state.df = None
 
+
 # ---- FRONT PAGE ----
 if st.session_state.page == "front":
     
@@ -70,8 +71,9 @@ if st.session_state.page == "front":
             st.session_state.current_page = latestPage(user_name, chosen)
             st.session_state.page = "view"
             st.rerun()
-    # st.warning("No files found for this user.")
+
     else:
+        st.warning("No file history found")
         st.text("Please click if you can't find the file here:")
         st.button("Upload New File", on_click=lambda: setattr(st.session_state, 'page', 'upload'))
 
